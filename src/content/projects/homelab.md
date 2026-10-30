@@ -3,8 +3,8 @@ title: Homelab con Raspberry Pi
 group: personal
 tipo: infraestructura
 context: Proyecto personal · 2026
-summary: Un servidor en casa con contenedores, acceso remoto seguro y publicación sin abrir puertos. Este sitio corre ahí.
-problem: Quería mis propios servicios (paneles, aplicaciones, este sitio) sin depender de un hosting y sin exponer mi red.
+summary: Un servidor en casa con contenedores, acceso remoto seguro y publicación sin abrir puertos.
+problem: Quería un laboratorio propio para levantar servicios y aplicaciones sin exponer mi red de casa.
 solution: Una Raspberry Pi 5 con Docker, publicación a través de un túnel con autenticación delante de cada panel, y una VPN propia para emergencias.
 result: Servicios accesibles desde cualquier lugar, sin puertos abiertos para la web y con actualizaciones de seguridad automáticas.
 technologies: [Raspberry Pi 5, Linux, Docker, Nginx, Cloudflare Tunnel, Cloudflare Access, WireGuard]
