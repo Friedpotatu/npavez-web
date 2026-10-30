@@ -43,7 +43,8 @@ const jsonLd = {
 ---
 
 <Base title={title} jsonLd={jsonLd}>
-  <Font cssVariable="--font-code" preload slot="head" />
+  <!-- Monoespaciada solo para etiquetas técnicas: carga sin precarga para no competir con las principales. -->
+  <Font cssVariable="--font-code" slot="head" />
   <Barra />
   <Inicio />
   <main id="contenido">

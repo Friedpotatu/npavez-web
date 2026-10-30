@@ -47,7 +47,8 @@ export default defineConfig({
   ],
 
   // Content Security Policy: Astro calcula el hash de cada script y estilo que genera.
-  // frame-ancestors no se puede declarar en <meta>: va como cabecera en nginx.conf.
+  // frame-ancestors no se puede declarar en <meta>: va como cabecera en public/.htaccess.
+  // Cloudflare Web Analytics inyecta su beacon (static.cloudflareinsights.com) y reporta a cloudflareinsights.com.
   security: {
     csp: {
       directives: [
@@ -55,12 +56,15 @@ export default defineConfig({
         "img-src 'self' data:",
         "media-src 'self'",
         "font-src 'self'",
-        "connect-src 'self'",
+        "connect-src 'self' https://cloudflareinsights.com",
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
         'upgrade-insecure-requests',
       ],
+      scriptDirective: {
+        resources: ["'self'", 'https://static.cloudflareinsights.com'],
+      },
     },
   },
 

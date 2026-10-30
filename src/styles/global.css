@@ -85,10 +85,7 @@
   animation-timing-function: ease;
 }
 
-/* Entrada del inicio: un solo fundido al cargar (solo opacidad). */
-.fade-in {
-  animation: fade-in 700ms ease both;
-}
+/* Fundido de entrada (lo usa la cota del edificio). */
 @keyframes fade-in {
   from {
     opacity: 0;
