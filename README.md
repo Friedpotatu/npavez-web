@@ -1,7 +1,7 @@
 # npavez.com
 
 Portafolio de Nicolás Pavez, Ingeniero de Soluciones. Sitio estático hecho con Astro y Tailwind CSS,
-publicado desde una Raspberry Pi propia detrás de Nginx Proxy Manager y Cloudflare Tunnel.
+publicado en Hostinger detrás de Cloudflare.
 
 ## Comandos
 
@@ -29,17 +29,17 @@ publicado desde una Raspberry Pi propia detrás de Nginx Proxy Manager y Cloudfl
 
 ## Publicación
 
-Cada push a `main` ejecuta `.github/workflows/publicar.yml`: revisa, compila y publica la imagen
-ARM64 en `ghcr.io/friedpotatu/npavez-web`. En la Raspberry Pi, `deploy/` contiene el `compose.yaml`
-y un temporizador de systemd que descarga la imagen nueva cada 5 minutos.
+Cada push a `main` ejecuta `.github/workflows/publicar.yml`: revisa, compila y sube `dist/` a Hostinger
+por SSH con `rsync --delete`. `public/.htaccess` define las URL limpias, el 404, las cabeceras de
+seguridad y la caché.
 
-Instalación en la Pi (una vez):
+Secretos del repositorio (Settings → Secrets and variables → Actions):
 
-```sh
-mkdir -p ~/stacks/npavez-web ~/.config/systemd/user
-cp deploy/compose.yaml deploy/actualizar.sh ~/stacks/npavez-web/
-cp deploy/npavez-web.service deploy/npavez-web.timer ~/.config/systemd/user/
-sudo loginctl enable-linger "$USER"
-systemctl --user daemon-reload
-systemctl --user enable --now npavez-web.timer
-```
+| Secreto | Valor |
+| :------ | :---- |
+| `HOSTINGER_HOST` | IP o host SSH del plan |
+| `HOSTINGER_PUERTO` | Puerto SSH (en Hostinger suele ser 65002) |
+| `HOSTINGER_USUARIO` | Usuario SSH (`u…`) |
+| `HOSTINGER_RUTA` | Carpeta del sitio, por ejemplo `domains/npavez.com/public_html` |
+| `HOSTINGER_CLAVE_SSH` | Clave privada de despliegue (la pública va en hPanel → Acceso SSH) |
+| `HOSTINGER_KNOWN_HOSTS` | Salida de `ssh-keyscan -p <puerto> <host>` |

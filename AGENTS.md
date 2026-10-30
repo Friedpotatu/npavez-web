@@ -1,22 +1,21 @@
-## Development
+# Instrucciones para agentes
 
-When starting the dev server, use background mode:
+Portafolio estático (Astro 7 + Tailwind 4) publicado en Hostinger. Ver README.md para comandos y estructura.
 
-```
-astro dev --background
-```
+## Reglas
 
-Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
+- **Contenido** en `src/site.ts` y `src/content/` (experiencia y proyectos). La presentación y "Sobre mí"
+  son textos de Nicolás tal cual: no reescribirlos.
+- **CEIM**: los sistemas internos se describen sin nombres de sistemas, clientes, personas, URL, capturas
+  ni código. Solo afirmaciones verificables (estado, cifras) con evidencia.
+- **CSP estricta** (Astro genera los hashes): sin atributos `style` ni scripts en línea en el HTML. Los
+  estilos dinámicos se aplican desde JS con `element.style`.
+- **Componentes**: una sección por componente en `src/components/`, con su marcado, script y estilos.
+  Los tokens de color y los estilos compartidos viven en `src/styles/global.css`.
+- **Sin residuos**: al cambiar algo, borrar lo que quede sin uso (componentes, estilos, íconos, datos).
+- **Movimiento**: solo `opacity` y `transform`; respetar `prefers-reduced-motion`.
 
-## Documentation
+## Antes de terminar
 
-Full documentation: https://docs.astro.build
-
-Consult these guides before working on related tasks:
-
-- [Adding pages, dynamic routes, or middleware](https://docs.astro.build/en/guides/routing/)
-- [Working with Astro components](https://docs.astro.build/en/basics/astro-components/)
-- [Using React, Vue, Svelte, or other framework components](https://docs.astro.build/en/guides/framework-components/)
-- [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
-- [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
-- [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
+`npm run check` y `npm run build` sin errores, advertencias ni sugerencias. Probar en el navegador en
+tema claro, oscuro y ancho de celular.

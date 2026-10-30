@@ -1,0 +1,45 @@
+# Sitio estático en Hostinger (LiteSpeed lee .htaccess como Apache).
+# HTTPS y HSTS los pone Cloudflare; aquí van las URL limpias, el 404, la seguridad y la caché.
+Options -Indexes
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Un solo dominio: www redirige al dominio sin www.
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+  # La URL canónica no lleva .html: /index.html → / y /pagina.html → /pagina.
+  RewriteCond %{THE_REQUEST} \s/index\.html[\s?] [NC]
+  RewriteRule ^ / [R=301,L]
+  RewriteCond %{THE_REQUEST} \s/([^.\s?]+)\.html[\s?] [NC]
+  RewriteRule ^ /%1 [R=301,L]
+
+  # /pagina sirve pagina.html (el build usa build.format 'file').
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.+)$ $1.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  # La CSP completa va en un <meta> que genera Astro con hashes; frame-ancestors solo vale como cabecera.
+  Header always set Content-Security-Policy "frame-ancestors 'none'"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+
+  # Caché: el HTML se revalida siempre (un cambio se ve al tiro); los videos, 30 días;
+  # los archivos con hash en el nombre (/_astro) nunca cambian: un año, inmutables.
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.(mp4|jpg|png|svg|xml|txt)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+  <FilesMatch "(\.[A-Za-z0-9_-]{8}(_[A-Za-z0-9]+)?\.[a-z0-9]+|^[0-9a-f]{16}\.woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
