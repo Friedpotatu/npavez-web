@@ -1,0 +1,21 @@
+---
+// Aparición al hacer scroll: los ejes se dibujan y los bloques suben con un fundido (estilos en
+// global.css, bajo html[data-revelar]). Sin JS o con movimiento reducido, todo se ve desde el inicio.
+---
+
+<script>
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.documentElement.setAttribute('data-revelar', '');
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          e.target.setAttribute('data-visto', '');
+          io.unobserve(e.target);
+        }
+      },
+      { rootMargin: '0px 0px -10% 0px' },
+    );
+    document.querySelectorAll('[data-ver], .aparecer, .aparecer-grupo').forEach((el) => io.observe(el));
+  }
+</script>

@@ -1,0 +1,120 @@
+---
+// Inicio: presentación y edificio de software sobre papel de plano. Con mouse, una mira de CAD
+// (líneas guía y coordenadas) sigue al cursor. Sube por detrás de la barra fija (-mt-16 pt-16).
+import { Image } from 'astro:assets';
+import Edificio from './Edificio.astro';
+import EmailLink from './EmailLink.astro';
+import Icon from './Icon.astro';
+import profile from '../assets/profile.jpg';
+import { site } from '../site';
+---
+
+<section id="inicio" aria-labelledby="titulo" class="lienzo relative -mt-16 overflow-hidden border-b border-line pt-16" data-mira-area>
+  <div class="mira-x" aria-hidden="true"></div>
+  <div class="mira-y" aria-hidden="true"></div>
+  <p class="mira-coord code" aria-hidden="true"></p>
+
+  <div class="relative z-10 mx-auto grid max-w-6xl items-center gap-10 px-5 pt-8 pb-20 lg:grid-cols-[1fr_32rem] lg:pt-14 lg:pb-24">
+    <div class="fade-in">
+      <figure class="registro inline-block p-2">
+        <Image src={profile} alt="Foto de Nicolás Pavez" width={112} height={112} densities={[1, 2]} loading="eager" fetchpriority="high" class="size-24 object-cover grayscale-[35%] sm:size-28" />
+      </figure>
+      <h1 id="titulo" class="mt-6 text-[clamp(2.75rem,6.5vw,5rem)] leading-[0.98] font-semibold tracking-[-0.035em]">
+        {site.name}
+        <span class="mt-3 block text-[clamp(1.5rem,3vw,2.25rem)] font-medium tracking-tight text-obra-texto">{site.role}</span>
+      </h1>
+      <p class="mt-7 max-w-[58ch] text-lg leading-relaxed text-pretty text-muted">{site.intro}</p>
+      <div class="mt-8 flex flex-wrap items-center gap-3">
+        <a href="#proyectos" class="bg-ink px-5 py-2.5 text-sm font-medium text-bg transition-opacity hover:opacity-85">Ver proyectos</a>
+        <EmailLink class="px-5 py-2.5 text-sm font-medium ring-1 ring-ink transition-colors ring-inset hover:bg-obra hover:text-sobre-obra hover:ring-obra">Escríbeme</EmailLink>
+        <a href={site.linkedin} rel="me noopener" target="_blank" class="grid size-10 place-items-center text-muted transition-colors hover:text-ink">
+          <Icon name="linkedin" class="size-[18px]" /><span class="sr-only">LinkedIn (se abre en otra pestaña)</span>
+        </a>
+        <a href={site.github} rel="me noopener" target="_blank" class="grid size-10 place-items-center text-muted transition-colors hover:text-ink">
+          <Icon name="github" class="size-[18px]" /><span class="sr-only">GitHub (se abre en otra pestaña)</span>
+        </a>
+      </div>
+    </div>
+    <Edificio />
+  </div>
+</section>
+
+<script>
+  // Solo con mouse. Un frame por movimiento como máximo, y solo transform (compositor).
+  const area = document.querySelector<HTMLElement>('[data-mira-area]');
+  if (area && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    const mx = area.querySelector<HTMLElement>('.mira-x')!;
+    const my = area.querySelector<HTMLElement>('.mira-y')!;
+    const coord = area.querySelector<HTMLElement>('.mira-coord')!;
+    let x = 0;
+    let y = 0;
+    let frame = 0;
+    const pintar = () => {
+      frame = 0;
+      const caja = area.getBoundingClientRect();
+      const px = x - caja.left;
+      const py = y - caja.top;
+      mx.style.transform = `translate3d(0, ${py}px, 0)`;
+      my.style.transform = `translate3d(${px}px, 0, 0)`;
+      coord.style.transform = `translate3d(${px + 12}px, ${py + 12}px, 0)`;
+      coord.textContent = `x ${Math.round(px)} · y ${Math.round(py)}`;
+    };
+    area.addEventListener('pointermove', (e) => {
+      x = e.clientX;
+      y = e.clientY;
+      if (!frame) frame = requestAnimationFrame(pintar);
+    });
+    area.addEventListener('pointerenter', (e) => {
+      x = e.clientX;
+      y = e.clientY;
+      pintar();
+      area.setAttribute('data-mira', '');
+    });
+    area.addEventListener('pointerleave', () => area.removeAttribute('data-mira'));
+  }
+</script>
+
+<style>
+  .mira-x,
+  .mira-y,
+  .mira-coord {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 300ms ease;
+    will-change: transform;
+  }
+  .mira-x {
+    right: 0;
+    height: 1px;
+    background: var(--color-obra);
+  }
+  .mira-y {
+    bottom: 0;
+    width: 1px;
+    background: var(--color-obra);
+  }
+  .mira-coord {
+    margin: 0;
+    font-size: 11px;
+    color: var(--color-obra-texto);
+  }
+  [data-mira] > .mira-x,
+  [data-mira] > .mira-y {
+    opacity: 0.45;
+  }
+  [data-mira] > .mira-coord {
+    opacity: 1;
+  }
+
+  /* Foto con marcas de registro en dos esquinas, como en un plano. */
+  .registro {
+    background:
+      linear-gradient(var(--color-ink), var(--color-ink)) top left / 14px 1.5px no-repeat,
+      linear-gradient(var(--color-ink), var(--color-ink)) top left / 1.5px 14px no-repeat,
+      linear-gradient(var(--color-ink), var(--color-ink)) bottom right / 14px 1.5px no-repeat,
+      linear-gradient(var(--color-ink), var(--color-ink)) bottom right / 1.5px 14px no-repeat;
+  }
+</style>

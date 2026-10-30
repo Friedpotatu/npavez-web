@@ -1,0 +1,258 @@
+---
+// Galería opcional de un proyecto: grilla de miniaturas que abre un visor (<dialog> nativo).
+// Nada pesado se descarga antes de tiempo: las miniaturas están dentro de una ficha cerrada,
+// las imágenes grandes son "lazy" y solo la diapositiva activa se muestra, y los videos usan
+// preload="none" con póster.
+import { Picture } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import Icon from './Icon.astro';
+
+interface Props {
+  id: string;
+  title: string;
+  items: CollectionEntry<'projects'>['data']['gallery'];
+}
+const { id, title, items } = Astro.props;
+const dialogId = `galeria-${id}`;
+---
+
+<ul class="grid grid-cols-3 gap-2 sm:grid-cols-4" aria-label={`Galería: ${title}`}>
+  {
+    items.map((item, i) => (
+      <li>
+        <button
+          type="button"
+          class="group/thumb relative block aspect-[4/3] w-full overflow-hidden bg-surface ring-1 ring-line"
+          data-gallery-open={dialogId}
+          data-index={i}
+          aria-haspopup="dialog"
+          aria-label={`${item.type === 'video' ? 'Ver video' : 'Ver imagen'}: ${item.alt}`}
+        >
+          {item.type === 'image' ? (
+            <Picture
+              src={item.src}
+              alt=""
+              formats={['avif', 'webp']}
+              widths={[200, 400]}
+              sizes="200px"
+              loading="lazy"
+              decoding="async"
+              class="size-full object-cover object-top transition-opacity duration-300 group-hover/thumb:opacity-80"
+            />
+          ) : (
+            <>
+              <img
+                src={item.poster}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                class="size-full object-cover object-top transition-opacity duration-300 group-hover/thumb:opacity-80"
+              />
+              <span class="absolute inset-0 grid place-items-center">
+                <span class="grid size-9 place-items-center bg-black/60 text-white">
+                  <Icon name="play" class="size-4" />
+                </span>
+              </span>
+            </>
+          )}
+        </button>
+      </li>
+    ))
+  }
+</ul>
+
+<dialog
+  id={dialogId}
+  class="gallery m-0 size-full max-h-none max-w-none overflow-hidden bg-transparent p-0 text-white backdrop:bg-transparent"
+  aria-label={`Galería: ${title}`}
+  data-gallery
+>
+  <div class="flex h-full flex-col">
+    <div class="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <p class="truncate text-sm font-medium">{title}</p>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-white/70 tabular-nums" aria-live="polite" data-counter></span>
+        <button type="button" class="grid size-10 place-items-center hover:bg-white/10" data-gallery-close aria-label="Cerrar galería">
+          <Icon name="close" />
+        </button>
+      </div>
+    </div>
+
+    <div class="relative min-h-0 flex-1" data-stage>
+      <ul class="relative h-full">
+        {
+          items.map((item, i) => (
+            <li class="absolute inset-0 hidden flex-col px-4 pb-1 data-[active]:flex sm:px-20" data-slide={i}>
+              <figure class="flex h-full min-h-0 flex-col">
+                {/* Caja con tamaño definido: la imagen se ajusta completa dentro, nunca la desborda. */}
+                <div class="relative min-h-0 flex-1 overflow-hidden">
+                  {item.type === 'image' ? (
+                    <Picture
+                      src={item.src}
+                      alt={item.alt}
+                      formats={['avif', 'webp']}
+                      widths={[640, 1024, 1600, 2400]}
+                      sizes="100vw"
+                      loading="lazy"
+                      decoding="async"
+                      class="absolute inset-0 size-full cursor-zoom-in object-contain transition-transform duration-300 ease-out data-[zoomed]:cursor-zoom-out"
+                      data-zoomable
+                    />
+                  ) : (
+                    <video class="absolute inset-0 size-full object-contain" controls playsinline preload="none" poster={item.poster} aria-label={item.alt}>
+                      <source src={item.src} type="video/mp4" />
+                    </video>
+                  )}
+                </div>
+                {item.caption && (
+                  <figcaption class="pt-3 text-center text-sm text-pretty text-white/80">{item.caption}</figcaption>
+                )}
+              </figure>
+            </li>
+          ))
+        }
+      </ul>
+
+      {
+        items.length > 1 && (
+          <>
+            <button
+              type="button"
+              class="absolute top-1/2 left-2 hidden size-12 -translate-y-1/2 place-items-center bg-black/40 transition-colors hover:bg-white/15 sm:grid"
+              data-gallery-prev
+              aria-label="Anterior"
+            >
+              <Icon name="prev" class="size-6" />
+            </button>
+            <button
+              type="button"
+              class="absolute top-1/2 right-2 hidden size-12 -translate-y-1/2 place-items-center bg-black/40 transition-colors hover:bg-white/15 sm:grid"
+              data-gallery-next
+              aria-label="Siguiente"
+            >
+              <Icon name="next" class="size-6" />
+            </button>
+          </>
+        )
+      }
+    </div>
+
+    {
+      items.length > 1 && (
+        <ul class="flex shrink-0 justify-start gap-2 overflow-x-auto px-4 py-3 sm:justify-center sm:px-6" aria-label="Miniaturas">
+          {items.map((item, i) => (
+            <li class="shrink-0">
+              <button
+                type="button"
+                class="relative block h-12 w-16 overflow-hidden opacity-50 ring-white transition-opacity hover:opacity-90 aria-[current=true]:opacity-100 aria-[current=true]:ring-2"
+                data-goto={i}
+                aria-label={`Ir a ${i + 1}: ${item.alt}`}
+              >
+                {item.type === 'image' ? (
+                  <Picture src={item.src} alt="" formats={['avif', 'webp']} widths={[200]} sizes="64px" loading="lazy" class="size-full object-cover object-top" />
+                ) : (
+                  <>
+                    <img src={item.poster} alt="" loading="lazy" class="size-full object-cover object-top" />
+                    <span class="absolute inset-0 grid place-items-center">
+                      <Icon name="play" class="size-3.5" />
+                    </span>
+                  </>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</dialog>
+
+<script>
+  // Un solo script para todas las galerías de la página (Astro lo incluye una vez).
+  for (const dialog of document.querySelectorAll<HTMLDialogElement>('dialog[data-gallery]')) {
+    const slides = [...dialog.querySelectorAll<HTMLElement>('[data-slide]')];
+    const thumbs = [...dialog.querySelectorAll<HTMLElement>('[data-goto]')];
+    const counter = dialog.querySelector<HTMLElement>('[data-counter]')!;
+    let index = 0;
+
+    // Zoom con clic: amplía la imagen y el punto ampliado sigue al mouse (solo transform).
+    const ZOOM = 2.5;
+    const unzoom = (img?: HTMLElement | null) => {
+      if (!img) return;
+      img.removeAttribute('data-zoomed');
+      img.style.transform = '';
+    };
+    const origin = (img: HTMLElement, e: PointerEvent | MouseEvent) => {
+      const box = img.getBoundingClientRect();
+      img.style.transformOrigin = `${((e.clientX - box.left) / box.width) * 100}% ${((e.clientY - box.top) / box.height) * 100}%`;
+    };
+    for (const img of dialog.querySelectorAll<HTMLElement>('[data-zoomable]')) {
+      img.addEventListener('click', (e) => {
+        if (img.hasAttribute('data-zoomed')) return unzoom(img);
+        origin(img, e);
+        img.setAttribute('data-zoomed', '');
+        img.style.transform = `scale(${ZOOM})`;
+      });
+      let frame = 0;
+      img.addEventListener('pointermove', (e) => {
+        if (!img.hasAttribute('data-zoomed') || frame) return;
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          origin(img, e);
+        });
+      });
+    }
+
+    const show = (next: number) => {
+      unzoom(slides[index]?.querySelector('[data-zoomable]'));
+      slides[index]?.querySelector('video')?.pause();
+      slides[index]?.removeAttribute('data-active');
+      index = (next + slides.length) % slides.length;
+      slides[index].setAttribute('data-active', '');
+      counter.textContent = slides.length > 1 ? `${index + 1} / ${slides.length}` : '';
+      thumbs.forEach((t, i) => t.setAttribute('aria-current', String(i === index)));
+      thumbs[index]?.scrollIntoView({ block: 'nearest', inline: 'center' });
+    };
+
+    for (const opener of document.querySelectorAll<HTMLElement>(`[data-gallery-open="${dialog.id}"]`)) {
+      opener.addEventListener('click', () => {
+        show(Number(opener.dataset.index ?? 0));
+        dialog.showModal();
+      });
+    }
+
+    thumbs.forEach((t) => t.addEventListener('click', () => show(Number(t.dataset.goto))));
+    dialog.querySelector('[data-gallery-close]')?.addEventListener('click', () => dialog.close());
+    dialog.querySelector('[data-gallery-prev]')?.addEventListener('click', () => show(index - 1));
+    dialog.querySelector('[data-gallery-next]')?.addEventListener('click', () => show(index + 1));
+
+    // Las flechas siempre cambian de elemento, aunque el foco esté en un video.
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        show(index + (e.key === 'ArrowRight' ? 1 : -1));
+      }
+    });
+
+    // Deslizar con el dedo en pantallas táctiles.
+    const stage = dialog.querySelector<HTMLElement>('[data-stage]')!;
+    let startX: number | null = null;
+    stage.addEventListener('touchstart', (e) => (startX = e.touches[0].clientX), { passive: true });
+    stage.addEventListener('touchend', (e) => {
+      if (startX === null) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 50) show(index + (dx < 0 ? 1 : -1));
+      startX = null;
+    });
+
+    // Clic en el fondo oscuro (fuera del contenido) cierra.
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+
+    dialog.addEventListener('close', () => {
+      unzoom(slides[index]?.querySelector('[data-zoomable]'));
+      slides[index]?.querySelector('video')?.pause();
+    });
+  }
+</script>

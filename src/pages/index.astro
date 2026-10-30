@@ -1,16 +1,58 @@
 ---
+// Página principal, estilo "plano de obra": un arquitecto de software que gestiona proyectos.
+// Cada sección es un componente con su marcado, su script y sus estilos.
+import { Font } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Barra from '../components/Barra.astro';
+import Inicio from '../components/Inicio.astro';
+import Experiencia from '../components/Experiencia.astro';
+import Proyectos from '../components/Proyectos.astro';
+import Metodo from '../components/Metodo.astro';
+import SobreMi from '../components/SobreMi.astro';
+import Materiales from '../components/Materiales.astro';
+import Cierre from '../components/Cierre.astro';
+import Revelar from '../components/Revelar.astro';
+import { site, stack } from '../site';
+
+const title = `${site.name} · ${site.role}`;
+
+// Datos estructurados: ProfilePage que describe a una Person. Debe coincidir con lo visible en la página.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  url: site.url,
+  name: title,
+  inLanguage: 'es-CL',
+  mainEntity: {
+    '@type': 'Person',
+    '@id': `${site.url}/#persona`,
+    name: site.name,
+    givenName: 'Nicolás',
+    familyName: 'Pavez',
+    jobTitle: site.role,
+    description: site.intro,
+    url: site.url,
+    image: `${site.url}/og.png`,
+    worksFor: { '@type': 'Organization', name: 'CEIM' },
+    alumniOf: { '@type': 'CollegeOrUniversity', name: 'Universidad Católica del Norte' },
+    address: { '@type': 'PostalAddress', addressLocality: 'Antofagasta', addressCountry: 'CL' },
+    knowsAbout: stack.flatMap((g) => g.items).slice(0, 30),
+    sameAs: [site.linkedin, site.github],
+  },
+};
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base title={title} jsonLd={jsonLd}>
+  <Font cssVariable="--font-code" preload slot="head" />
+  <Barra />
+  <Inicio />
+  <main id="contenido">
+    <Experiencia />
+    <Proyectos />
+    <Metodo />
+    <SobreMi />
+    <Materiales />
+  </main>
+  <Cierre />
+  <Revelar />
+</Base>

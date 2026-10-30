@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://npavez.com/sitemap-index.xml

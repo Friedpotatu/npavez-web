@@ -1,0 +1,80 @@
+---
+// Experiencia: línea de tiempo compacta, de lo más reciente a lo más antiguo. Cada cargo muestra una
+// línea de resumen; el detalle completo se abre en su ficha.
+import Eje from './Eje.astro';
+import Ficha from './Ficha.astro';
+import Titulo from './Titulo.astro';
+import { experiencia } from '../lib/proyectos';
+import { mes } from '../lib/fechas';
+
+const items = await experiencia();
+const periodo = (roles: { start: string; end?: string }[]) => {
+  const desde = roles.map((r) => r.start).sort()[0];
+  const hasta = roles.some((r) => !r.end) ? 'hoy' : mes(roles.map((r) => r.end!).sort().at(-1)!);
+  return `${mes(desde)} – ${hasta}`;
+};
+---
+
+<section id="experiencia" aria-labelledby="t-experiencia" class="mx-auto max-w-6xl px-5 py-20">
+  <Eje letra="A" />
+  <Titulo id="t-experiencia">Experiencia</Titulo>
+  <ol class="aparecer-grupo mt-10 max-w-4xl border-l-2 border-ink">
+    {
+      items.map(({ item }) => {
+        const actual = item.data.roles.some((r) => !r.end);
+        return (
+          <li class="relative grid gap-x-6 gap-y-1 py-4 pl-7 sm:grid-cols-[9.5rem_1fr_auto] sm:items-center">
+            <span class:list={['absolute top-[1.45rem] -left-[7px] size-3 rotate-45', actual ? 'bg-obra' : 'bg-ink']} aria-hidden="true" />
+            <p class="code text-xs text-muted">{periodo(item.data.roles)}</p>
+            <div class="min-w-0">
+              <h3 class="font-display text-lg font-semibold tracking-tight">
+                {item.data.company}
+                <span class="ml-1 font-sans text-base font-normal text-muted">· {item.data.roles[0].title.split(' · ')[0]}</span>
+              </h3>
+              <p class="line-clamp-1 text-sm text-muted">{item.data.highlights[0]}</p>
+            </div>
+            <button
+              type="button"
+              class="code justify-self-start text-xs font-semibold text-obra-texto underline decoration-1 underline-offset-4 transition-colors hover:text-ink sm:justify-self-end"
+              data-abrir={`experiencia-${item.id}`}
+              aria-haspopup="dialog"
+            >
+              ver ficha<span class="sr-only">: {item.data.company}</span>
+            </button>
+          </li>
+        );
+      })
+    }
+  </ol>
+</section>
+
+{
+  items.map(({ item, Content }) => (
+    <Ficha id={`experiencia-${item.id}`} titulo={item.data.company}>
+      <Fragment slot="meta">
+        {periodo(item.data.roles)}
+        {item.data.location && ` · ${item.data.location}`}
+      </Fragment>
+      <ul class="mt-2 grid gap-1 text-muted">
+        {item.data.roles.map((r) => (
+          <li>
+            {r.title} <span class="code text-xs">({mes(r.start)} – {r.end ? mes(r.end) : 'hoy'})</span>
+          </li>
+        ))}
+      </ul>
+      <ul class="mt-6 grid list-[square] gap-2 pl-[1.1rem] leading-relaxed text-pretty marker:text-obra">
+        {item.data.highlights.map((h) => <li>{h}</li>)}
+      </ul>
+      {item.body?.trim() && (
+        <div class="prose-detail mt-6">
+          <Content />
+        </div>
+      )}
+      {item.data.technologies.length > 0 && (
+        <p class="mt-6 text-sm text-muted">
+          <span class="code text-xs">materiales:</span> {item.data.technologies.join(', ')}
+        </p>
+      )}
+    </Ficha>
+  ))
+}

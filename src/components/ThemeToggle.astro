@@ -1,0 +1,36 @@
+---
+// Botón de tema: guarda la elección y cambia con un solo fundido de toda la página (View Transitions).
+import Icon from './Icon.astro';
+
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+---
+
+<button type="button" class={className} data-cambiar-tema aria-label="Cambiar a tema claro">
+  <Icon name="moon" class="size-[18px] dark:hidden" />
+  <Icon name="sun" class="hidden size-[18px] dark:block" />
+</button>
+
+<script>
+  const root = document.documentElement;
+  const boton = document.querySelector<HTMLButtonElement>('[data-cambiar-tema]');
+  if (boton) {
+    const etiqueta = () => boton.setAttribute('aria-label', root.dataset.theme === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro');
+    etiqueta();
+    boton.addEventListener('click', () => {
+      const siguiente = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('theme', siguiente);
+      } catch {}
+      const aplicar = () => {
+        root.dataset.theme = siguiente;
+        etiqueta();
+      };
+      const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (document.startViewTransition && !reducir) document.startViewTransition(aplicar);
+      else aplicar();
+    });
+  }
+</script>

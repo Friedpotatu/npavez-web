@@ -1,0 +1,6 @@
+# Saltos de línea LF en todo el repo (los scripts de deploy/ corren en Linux).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.mp4 binary
+*.ico binary

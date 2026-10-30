@@ -1,0 +1,72 @@
+---
+// Edificio isométrico de software: las capas de una solución, de la infraestructura a la interfaz,
+// con una cota "end-to-end". Se construye piso por piso al cargar (solo opacidad y transform).
+const iso = (x: number, y: number, z: number) => [230 + (x - y) * 0.866, 236 + (x + y) * 0.5 - z];
+const puntos = (lista: number[][]) => lista.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+const LADO = 170;
+const ALTO = 26;
+const capas = ['infraestructura', 'datos', 'dominio', 'api', 'interfaz'].map((nombre, i) => {
+  const z = i * 50;
+  return {
+    nombre,
+    techo: puntos([iso(0, 0, z), iso(LADO, 0, z), iso(LADO, LADO, z), iso(0, LADO, z)]),
+    izquierda: puntos([iso(0, LADO, z), iso(LADO, LADO, z), iso(LADO, LADO, z - ALTO), iso(0, LADO, z - ALTO)]),
+    derecha: puntos([iso(LADO, 0, z), iso(LADO, LADO, z), iso(LADO, LADO, z - ALTO), iso(LADO, 0, z - ALTO)]),
+    ancla: iso(LADO, LADO / 2, z - ALTO / 2),
+  };
+});
+const cumbre = iso(0, 0, 200);
+const base = iso(LADO, LADO, -ALTO);
+const medio = (cumbre[1] + base[1]) / 2;
+---
+
+<svg viewBox="0 0 600 480" class="code w-full" role="img" aria-label="Dibujo isométrico de una solución construida por capas: infraestructura, datos, dominio, API e interfaz, de punta a punta">
+  <defs>
+    <pattern id="achurado" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="7" class="stroke-ink" stroke-width="1" stroke-opacity="0.35" />
+    </pattern>
+    <marker id="cota-punta" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" class="fill-ink" />
+    </marker>
+  </defs>
+  {
+    capas.map((c, i) => (
+      <g class="piso">
+        <polygon points={c.izquierda} fill="url(#achurado)" class="stroke-ink" stroke-width="1.25" />
+        <polygon points={c.derecha} class="fill-cara stroke-ink" stroke-width="1.25" />
+        <polygon points={c.techo} class:list={[i === capas.length - 1 ? 'fill-obra' : 'fill-surface', 'stroke-ink']} stroke-width="1.25" />
+        <line x1={c.ancla[0]} y1={c.ancla[1]} x2="440" y2={c.ancla[1]} class="stroke-ink" stroke-width="0.75" stroke-dasharray="2 3" />
+        <circle cx={c.ancla[0]} cy={c.ancla[1]} r="2.5" class="fill-ink" />
+        <text x="448" y={c.ancla[1] + 4} font-size="14" class="fill-ink">{c.nombre}</text>
+      </g>
+    ))
+  }
+  <g class="cota">
+    <line x1="40" y1={cumbre[1]} x2="40" y2={base[1]} class="stroke-ink" stroke-width="1" marker-start="url(#cota-punta)" marker-end="url(#cota-punta)" />
+    <line x1="30" y1={cumbre[1]} x2={cumbre[0] - 10} y2={cumbre[1]} class="stroke-ink" stroke-width="0.5" stroke-dasharray="2 3" />
+    <line x1="30" y1={base[1]} x2={base[0] - 10} y2={base[1]} class="stroke-ink" stroke-width="0.5" stroke-dasharray="2 3" />
+    <text x="26" y={medio} font-size="14" class="fill-obra-texto" font-weight="700" text-anchor="middle" transform={`rotate(-90 26 ${medio})`}>end-to-end</text>
+  </g>
+  <text x={cumbre[0]} y={cumbre[1] - 16} font-size="12" text-anchor="middle" class="fill-muted">personas y procesos</text>
+  <line x1={cumbre[0]} y1={cumbre[1] - 10} x2={cumbre[0]} y2={cumbre[1] - 1} class="stroke-ink" stroke-width="1" marker-end="url(#cota-punta)" />
+</svg>
+
+<style>
+  /* De la base hacia arriba, un piso cada 140 ms. */
+  .piso {
+    animation: construir 700ms var(--ease-out-soft) both;
+  }
+  .piso:nth-of-type(2) { animation-delay: 140ms; }
+  .piso:nth-of-type(3) { animation-delay: 280ms; }
+  .piso:nth-of-type(4) { animation-delay: 420ms; }
+  .piso:nth-of-type(5) { animation-delay: 560ms; }
+  .cota {
+    animation: fade-in 600ms 900ms ease both;
+  }
+  @keyframes construir {
+    from {
+      opacity: 0;
+      transform: translateY(-36px);
+    }
+  }
+</style>

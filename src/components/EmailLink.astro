@@ -1,0 +1,23 @@
+---
+// Enlace de correo armado en el navegador (no queda en texto plano para los recolectores de spam).
+import { site } from '../site';
+
+interface Props {
+  class?: string;
+  showAddress?: boolean;
+}
+const { class: className = '', showAddress = false } = Astro.props;
+const [user, domain] = site.emailParts;
+---
+
+<a href="#contacto" class={className} data-mail data-u={user} data-d={domain} data-show={showAddress ? '' : undefined}>
+  <slot>Correo</slot>
+</a>
+
+<script>
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('[data-mail]')) {
+    const email = `${a.dataset.u}@${a.dataset.d}`;
+    a.href = `mailto:${email}`;
+    if (a.hasAttribute('data-show')) a.textContent = email;
+  }
+</script>

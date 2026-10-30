@@ -1,0 +1,59 @@
+---
+// Cierre: contacto y el rótulo de la lámina (como el cajetín de un plano técnico).
+// "Revisión" es el mes en que se generó el sitio: marca la última publicación, nunca queda falsa.
+import EmailLink from './EmailLink.astro';
+import { site } from '../site';
+import { mes } from '../lib/fechas';
+
+const hoy = new Date();
+const revision = mes(`${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`);
+const rotulo = [
+  { dt: 'autor', dd: site.name },
+  { dt: 'cargo', dd: site.role },
+  { dt: 'ubicación', dd: `${site.location}, Chile` },
+  { dt: 'revisión', dd: revision },
+  { dt: 'escala', dd: '1:1' },
+  { dt: 'construido en', dd: 'homelab propio' },
+];
+---
+
+<footer id="contacto" aria-labelledby="t-contacto" class="lienzo border-t border-line">
+  <div class="aparecer-grupo mx-auto grid max-w-6xl gap-12 px-5 pt-20 pb-32 lg:grid-cols-[1fr_28rem] lg:items-end">
+    <div>
+      <h2 id="t-contacto" class="max-w-[16ch] text-[clamp(2rem,4.5vw,3.25rem)] leading-[1.06] font-semibold tracking-[-0.03em] text-balance">
+        ¿Iniciamos un proyecto?
+      </h2>
+      <p class="mt-4 max-w-[52ch] text-lg text-muted">
+        Ingeniería en Computación e Informática, Universidad Católica del Norte. Escríbeme por un proyecto, una oportunidad o una conversación técnica.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <EmailLink showAddress class="bg-obra px-5 py-2.5 text-sm font-semibold text-sobre-obra transition-opacity hover:opacity-90" />
+        <a href={site.linkedin} rel="me noopener" target="_blank" class="px-5 py-2.5 text-sm font-medium ring-1 ring-ink transition-colors ring-inset hover:bg-surface">
+          LinkedIn<span class="sr-only"> (se abre en otra pestaña)</span>
+        </a>
+      </div>
+    </div>
+    <dl class="rotulo code grid grid-cols-2 border-2 border-ink text-xs">
+      <div class="col-span-2"><dt>proyecto</dt><dd class="font-display text-base font-semibold">Portafolio profesional</dd></div>
+      {rotulo.map((r) => <div><dt>{r.dt}</dt><dd>{r.dd}</dd></div>)}
+    </dl>
+  </div>
+</footer>
+
+<style>
+  .rotulo > div {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-ink);
+  }
+  /* Columna izquierda de cada fila con divisor; la última fila sin borde inferior. */
+  .rotulo > div:nth-child(even) {
+    border-right: 1px solid var(--color-ink);
+  }
+  .rotulo > div:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+  .rotulo dt {
+    color: var(--color-muted);
+    font-size: 10px;
+  }
+</style>

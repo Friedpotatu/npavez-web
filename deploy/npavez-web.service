@@ -1,0 +1,7 @@
+# Unidad de usuario (~/.config/systemd/user/): no requiere root; el usuario debe estar en el grupo docker.
+[Unit]
+Description=Actualiza el sitio npavez.com desde GitHub Container Registry
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh %h/stacks/npavez-web/actualizar.sh

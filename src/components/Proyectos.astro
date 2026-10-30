@@ -1,0 +1,242 @@
+---
+// Proyectos: carrusel de tarjetas con filtro por ámbito. Cada tarjeta muestra su tipo (etiqueta y
+// dibujo técnico) y avisa el material extra (imágenes, videos, enlaces). La ficha se abre en un modal.
+import Eje from './Eje.astro';
+import Ficha from './Ficha.astro';
+import Gallery from './Gallery.astro';
+import Icon from './Icon.astro';
+import Titulo from './Titulo.astro';
+import { grupos, proyectos } from '../lib/proyectos';
+import { tipos } from '../lib/tipos';
+
+const items = await proyectos();
+const ambito = Object.fromEntries(grupos.map((g) => [g.key, g.title]));
+const fases = ['Levantamiento', 'Diseño y construcción', 'Entrega'];
+
+type Extra = { icon: 'images' | 'play' | 'external'; texto: string };
+const extras = (d: (typeof items)[number]['p']['data']): Extra[] => {
+  const videos = d.gallery.filter((g) => g.type === 'video').length;
+  const imagenes = d.gallery.length - videos;
+  const lista: Extra[] = [];
+  if (imagenes) lista.push({ icon: 'images', texto: `${imagenes} ${imagenes === 1 ? 'imagen' : 'imágenes'}` });
+  if (videos) lista.push({ icon: 'play', texto: `${videos} ${videos === 1 ? 'video' : 'videos'}` });
+  for (const l of d.links) lista.push({ icon: 'external', texto: l.label.toLowerCase() });
+  return lista;
+};
+const flecha = 'grid size-10 place-items-center ring-1 ring-ink transition-colors ring-inset hover:bg-ink hover:text-bg disabled:pointer-events-none disabled:opacity-30';
+---
+
+<section id="proyectos" aria-labelledby="t-proyectos" class="scroll-mt-20 py-20">
+  <div class="mx-auto max-w-6xl px-5">
+    <Eje letra="B" />
+    <div class="aparecer flex flex-wrap items-end justify-between gap-6">
+      <div>
+        <Titulo id="t-proyectos" aparecer={false}>Proyectos</Titulo>
+        <p class="mt-2 max-w-[56ch] text-muted">El tipo de cada uno se lee en la tarjeta. Ábrela para ver qué se levantó, qué se construyó y qué se entregó.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" class={flecha} data-carrusel-prev aria-label="Proyectos anteriores"><Icon name="prev" /></button>
+        <button type="button" class={flecha} data-carrusel-next aria-label="Más proyectos"><Icon name="next" /></button>
+      </div>
+    </div>
+    <div class="code aparecer mt-6 flex flex-wrap gap-2 text-xs" role="group" aria-label="Filtrar proyectos por ámbito">
+      <button type="button" class="filtro" data-filtro="todos" aria-pressed="true">Todos</button>
+      {grupos.map((g) => <button type="button" class="filtro" data-filtro={g.key} aria-pressed="false">{g.title}</button>)}
+    </div>
+  </div>
+
+  <div class="carrusel aparecer mt-8" role="region" aria-roledescription="carrusel" aria-label="Proyectos" tabindex="0" data-carrusel>
+    <ul class="flex gap-5">
+      {
+        items.map(({ p, year }) => {
+          const d = p.data;
+          const tipo = tipos[d.tipo];
+          const extra = extras(d);
+          return (
+            <li class="tarjeta" data-grupo={d.group}>
+              <article class="relative flex h-full flex-col border-2 border-ink bg-surface transition-transform duration-300 hover:-translate-y-1">
+                <div class="lienzo relative grid aspect-[16/10] place-items-center border-b-2 border-ink">
+                  <svg viewBox="0 0 64 64" class="dibujo size-28 text-ink" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    {tipo.trazos.map((trazo) => <path d={trazo} />)}
+                  </svg>
+                  <span class="code absolute top-3 left-3 bg-ink px-2 py-1 text-[11px] text-bg">{tipo.label}</span>
+                  {extra.length > 0 && (
+                    <ul class="code absolute bottom-3 left-3 flex flex-wrap gap-1.5 text-[11px]" aria-label="Material del proyecto">
+                      {extra.map((x) => (
+                        <li class="flex items-center gap-1.5 bg-obra px-2 py-1 font-semibold text-sobre-obra">
+                          <Icon name={x.icon} class="size-3.5" />
+                          {x.texto}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div class="flex flex-1 flex-col p-5">
+                  <h3 class="font-display text-lg leading-snug font-semibold tracking-tight text-balance">{d.title}</h3>
+                  <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">{d.summary}</p>
+                  <div class="code mt-auto flex items-center justify-between gap-3 pt-5 text-xs text-muted">
+                    <span>
+                      {ambito[d.group]} · {year}
+                    </span>
+                    <button type="button" class="estirar font-semibold text-obra-texto" data-abrir={`proyecto-${p.id}`} aria-haspopup="dialog">
+                      ver ficha<span class="sr-only">: {d.title}</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+  <p class="code mx-auto mt-4 max-w-6xl px-5 text-xs text-muted">Los sistemas de CEIM se muestran sin capturas, nombres ni código, por confidencialidad.</p>
+</section>
+
+{
+  items.map(({ p, Content, year, origen }) => {
+    const d = p.data;
+    return (
+      <Ficha id={`proyecto-${p.id}`} titulo={d.title}>
+        <Fragment slot="meta">
+          <span class="text-obra-texto">{tipos[d.tipo].label}</span> · {ambito[d.group]} · {year}
+        </Fragment>
+        <p class="mt-2 text-muted">{d.summary}</p>
+        <ol class="mt-8 grid gap-5 md:grid-cols-3">
+          {[d.problem, d.solution, d.result].map((texto, i) => (
+            <li>
+              <div class:list={['h-1.5', i === 2 ? 'bg-obra' : 'bg-ink/85']} aria-hidden="true" />
+              <p class="code mt-3 text-xs text-muted">{fases[i]}</p>
+              <p class:list={['mt-1 text-[15px] leading-relaxed text-pretty', i === 2 && 'font-medium']}>{texto}</p>
+            </li>
+          ))}
+        </ol>
+        {p.body?.trim() && (
+          <div class="prose-detail mt-8">
+            <Content />
+          </div>
+        )}
+        <p class="mt-6 text-sm text-muted">
+          <span class="code text-xs">materiales:</span> {d.technologies.join(', ')}. {origen}.
+        </p>
+        {d.gallery.length > 0 && (
+          <div class="mt-6">
+            <Gallery id={p.id} title={d.title} items={d.gallery} />
+          </div>
+        )}
+        {d.links.length > 0 && (
+          <div class="mt-6 flex flex-wrap gap-6">
+            {d.links.map((l) => (
+              <a href={l.href} target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm font-medium text-obra-texto">
+                {l.label}
+                <Icon name="external" class="size-3.5" />
+                <span class="sr-only">(se abre en otra pestaña)</span>
+              </a>
+            ))}
+          </div>
+        )}
+      </Ficha>
+    );
+  })
+}
+
+<script>
+  // Flechas que avanzan una tarjeta y filtros por ámbito. El estado de las flechas lo da un
+  // IntersectionObserver sobre las tarjetas: sin leer medidas al cargar (evita reflujo forzado).
+  const carrusel = document.querySelector<HTMLElement>('[data-carrusel]');
+  const prev = document.querySelector<HTMLButtonElement>('[data-carrusel-prev]');
+  const next = document.querySelector<HTMLButtonElement>('[data-carrusel-next]');
+  if (carrusel && prev && next) {
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const tarjetas = [...carrusel.querySelectorAll<HTMLElement>('.tarjeta')];
+    const visibles = new Set<Element>();
+
+    const estado = () => {
+      const activas = tarjetas.filter((t) => !t.hidden);
+      prev.disabled = activas.length === 0 || visibles.has(activas[0]);
+      next.disabled = activas.length === 0 || visibles.has(activas.at(-1)!);
+    };
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) visibles.add(e.target);
+          else visibles.delete(e.target);
+        }
+        estado();
+      },
+      { root: carrusel, threshold: 0.9 },
+    );
+    tarjetas.forEach((t) => io.observe(t));
+
+    const avanzar = (sentido: 1 | -1) => {
+      const ancho = tarjetas.find((t) => !t.hidden)?.offsetWidth ?? 320;
+      carrusel.scrollBy({ left: sentido * (ancho + 20), behavior: reduce ? 'auto' : 'smooth' });
+    };
+    prev.addEventListener('click', () => avanzar(-1));
+    next.addEventListener('click', () => avanzar(1));
+    carrusel.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') avanzar(1);
+      if (e.key === 'ArrowLeft') avanzar(-1);
+    });
+
+    const filtros = [...document.querySelectorAll<HTMLButtonElement>('[data-filtro]')];
+    for (const f of filtros) {
+      f.addEventListener('click', () => {
+        for (const o of filtros) o.setAttribute('aria-pressed', String(o === f));
+        for (const t of tarjetas) t.hidden = f.dataset.filtro !== 'todos' && t.dataset.grupo !== f.dataset.filtro;
+        carrusel.scrollTo({ left: 0 });
+      });
+    }
+  }
+</script>
+
+<style>
+  /* Desplazamiento nativo con imán por tarjeta, alineado al contenido centrado. */
+  .carrusel {
+    --borde: max(1.25rem, calc((100vw - 72rem) / 2 + 1.25rem));
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--borde);
+    padding: 0.5rem var(--borde) 1.25rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ink) transparent;
+  }
+  .carrusel:focus-visible {
+    outline-offset: -2px;
+  }
+  .tarjeta {
+    flex: none;
+    width: min(82vw, 21.5rem);
+    scroll-snap-align: start;
+  }
+  .tarjeta[hidden] {
+    display: none;
+  }
+  /* Toda la tarjeta abre la ficha: el botón se estira sobre ella. */
+  .estirar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .tarjeta article:has(.estirar:focus-visible) {
+    outline: 2px solid var(--color-obra);
+    outline-offset: 3px;
+  }
+  .dibujo {
+    transition: transform 600ms var(--ease-out-soft);
+  }
+  .tarjeta:hover .dibujo {
+    transform: scale(1.08) rotate(-2deg);
+  }
+  .filtro {
+    padding: 0.4rem 0.75rem;
+    box-shadow: inset 0 0 0 1px var(--color-ink);
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+  .filtro[aria-pressed='true'] {
+    background: var(--color-ink);
+    color: var(--color-bg);
+  }
+</style>

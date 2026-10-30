@@ -1,0 +1,325 @@
+@import "tailwindcss";
+
+/* Tema oscuro por defecto; si la persona elige otro, se guarda y se aplica con data-theme. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+  Paleta "plano de obra": papel gris frío, tinta grafito y naranja de obra como único acento.
+  --color-obra rellena; --color-obra-texto es la versión con contraste suficiente para texto.
+*/
+@theme {
+  --font-sans: var(--font-body);
+  --font-display: var(--font-heading);
+
+  --color-bg: #eef0ef;
+  --color-surface: #f8f9f8;
+  --color-line: #cfd4d6;
+  --color-ink: #1d2126;
+  --color-muted: #59616b;
+  --color-obra: #f26b1d;
+  --color-obra-texto: #b83d0b;
+  --color-cara: #d9dddf;
+  --color-reticula: rgb(29 33 38 / 0.06);
+  /* Texto sobre naranja: oscuro en ambos temas para mantener el contraste. */
+  --color-sobre-obra: #1c1f24;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  [data-theme="dark"] {
+    --color-bg: #16191d;
+    --color-surface: #1d2126;
+    --color-line: #2e343b;
+    --color-ink: #e4e7ea;
+    --color-muted: #9aa3ad;
+    --color-obra: #ff7a2b;
+    --color-obra-texto: #ff9a5c;
+    --color-cara: #2a3037;
+    --color-reticula: rgb(228 231 234 / 0.05);
+    color-scheme: dark;
+  }
+
+  :root {
+    color-scheme: light;
+    scroll-behavior: smooth;
+    /* Los saltos a una sección dejan espacio para la barra fija. */
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+  }
+
+  ::selection {
+    @apply bg-obra text-sobre-obra;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-obra);
+    outline-offset: 3px;
+  }
+
+  .code {
+    font-family: var(--font-code);
+  }
+}
+
+/*
+  Cambio de tema: el navegador captura la página antes y después y hace un solo fundido
+  (View Transitions). Todo cambia a la vez; sin transiciones por elemento que se desfasen.
+*/
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 280ms;
+  animation-timing-function: ease;
+}
+
+/* Entrada del inicio: un solo fundido al cargar (solo opacidad). */
+.fade-in {
+  animation: fade-in 700ms ease both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Texto de detalle (Markdown de experiencia y proyectos) dentro de las fichas. */
+.prose-detail {
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+.prose-detail ul {
+  display: grid;
+  gap: 0.5rem;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+.prose-detail li::marker {
+  color: var(--color-obra);
+}
+.prose-detail strong {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+.prose-detail code {
+  font-size: 0.85em;
+}
+
+/* Papel de plano: retícula fina de dibujo técnico. */
+.lienzo {
+  background-image:
+    linear-gradient(var(--color-reticula) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-reticula) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Ejes estructurales (Eje.astro): burbuja con letra y línea. */
+.eje {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.burbuja {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  border: 1.5px solid var(--color-ink);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.eje-linea {
+  height: 1px;
+  flex: 1;
+  background: var(--color-ink);
+  transform-origin: left;
+}
+
+/* Títulos de sección (Titulo.astro) con subrayado naranja. */
+.titulo-seccion {
+  display: inline-block;
+  padding-bottom: 0.35rem;
+}
+.titulo-seccion::after {
+  content: "";
+  display: block;
+  height: 4px;
+  margin-top: 0.35rem;
+  background: var(--color-obra);
+  transform-origin: left;
+}
+
+/*
+  Aparición al hacer scroll (Revelar.astro marca html[data-revelar] y cada bloque [data-visto]).
+  Ejes y subrayados se trazan; los bloques suben con un fundido, escalonado en los grupos.
+  Solo opacidad y transform. Sin JS o con movimiento reducido no se oculta nada.
+*/
+[data-revelar] .eje-linea {
+  transform: scaleX(0);
+  transition: transform 1100ms var(--ease-out-soft);
+}
+[data-revelar] .eje[data-visto] .eje-linea {
+  transform: scaleX(1);
+}
+[data-revelar] .titulo-seccion::after {
+  transform: scaleX(0);
+  transition: transform 900ms 250ms var(--ease-out-soft);
+}
+[data-revelar] section:has(.eje[data-visto]) .titulo-seccion::after {
+  transform: scaleX(1);
+}
+[data-revelar] .aparecer,
+[data-revelar] .aparecer-grupo > * {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 700ms ease,
+    transform 800ms var(--ease-out-soft);
+}
+[data-revelar] .aparecer[data-visto],
+[data-revelar] .aparecer-grupo[data-visto] > * {
+  opacity: 1;
+  transform: none;
+}
+.aparecer-grupo[data-visto] > :nth-child(2) { transition-delay: 90ms; }
+.aparecer-grupo[data-visto] > :nth-child(3) { transition-delay: 180ms; }
+.aparecer-grupo[data-visto] > :nth-child(4) { transition-delay: 270ms; }
+.aparecer-grupo[data-visto] > :nth-child(5) { transition-delay: 360ms; }
+.aparecer-grupo[data-visto] > :nth-child(6) { transition-delay: 450ms; }
+
+/* Con una ficha o la galería abiertas, la página de fondo no se desplaza. */
+html:has(dialog.ficha[open], dialog.gallery[open]) {
+  overflow: hidden;
+}
+
+/* Fichas (Ficha.astro): modal que entra con fundido y un leve ascenso. */
+dialog.ficha {
+  width: min(92vw, 52rem);
+  max-height: 86dvh;
+  margin: auto;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  border: 2px solid var(--color-ink);
+  box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.45);
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 220ms ease,
+    transform 300ms var(--ease-out-soft),
+    overlay 300ms allow-discrete,
+    display 300ms allow-discrete;
+}
+dialog.ficha[open] {
+  opacity: 1;
+  transform: none;
+}
+@starting-style {
+  dialog.ficha[open] {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+dialog.ficha::backdrop {
+  background: rgb(15 17 20 / 0);
+  transition:
+    background 250ms ease,
+    overlay 250ms allow-discrete,
+    display 250ms allow-discrete;
+}
+dialog.ficha[open]::backdrop {
+  background: rgb(15 17 20 / 0.6);
+}
+@starting-style {
+  dialog.ficha[open]::backdrop {
+    background: rgb(15 17 20 / 0);
+  }
+}
+.ficha-cabecera {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem 0.5rem 1.5rem;
+  border-bottom: 2px solid var(--color-ink);
+  background: var(--color-bg);
+}
+.ficha-cuerpo {
+  padding: 1.75rem 1.5rem 2rem;
+}
+@media (min-width: 640px) {
+  .ficha-cuerpo {
+    padding: 2rem 2.25rem 2.5rem;
+  }
+}
+
+/* Galería: entrada y salida con opacidad y escala (solo compositor, sin recalcular layout). */
+dialog.gallery {
+  opacity: 0;
+  transform: scale(0.98);
+  transition:
+    opacity 200ms ease,
+    transform 200ms var(--ease-out-soft),
+    overlay 200ms allow-discrete,
+    display 200ms allow-discrete;
+}
+dialog.gallery[open] {
+  opacity: 1;
+  transform: none;
+}
+@starting-style {
+  dialog.gallery[open] {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+dialog.gallery::backdrop {
+  background: rgb(10 20 19 / 0);
+  backdrop-filter: blur(0);
+  transition:
+    background 200ms ease,
+    backdrop-filter 200ms ease,
+    overlay 200ms allow-discrete,
+    display 200ms allow-discrete;
+}
+dialog.gallery[open]::backdrop {
+  background: rgb(10 20 19 / 0.85);
+  backdrop-filter: blur(4px);
+}
+@starting-style {
+  dialog.gallery[open]::backdrop {
+    background: rgb(10 20 19 / 0);
+    backdrop-filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after,
+  ::backdrop {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

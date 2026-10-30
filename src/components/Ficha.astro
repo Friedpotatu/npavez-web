@@ -1,0 +1,39 @@
+---
+// Ficha de detalle en un <dialog> modal nativo: foco atrapado, Esc para cerrar, fondo que cierra al
+// hacer clic. Se abre con cualquier botón que tenga data-abrir="<id>". Estilos en global.css.
+// Slot "meta": texto breve de la cabecera fija (fechas, tipo, ámbito). Slot por defecto: el cuerpo.
+import Icon from './Icon.astro';
+
+interface Props {
+  id: string;
+  titulo: string;
+}
+const { id, titulo } = Astro.props;
+---
+
+<dialog id={id} class="ficha" aria-labelledby={`${id}-titulo`}>
+  <div class="ficha-cabecera">
+    <p class="code text-xs text-muted"><slot name="meta" /></p>
+    <button type="button" class="grid size-10 place-items-center hover:bg-surface" data-cerrar aria-label="Cerrar ficha">
+      <Icon name="close" />
+    </button>
+  </div>
+  <div class="ficha-cuerpo">
+    <h2 id={`${id}-titulo`} class="font-display text-[clamp(1.5rem,3vw,2rem)] leading-tight font-semibold tracking-tight text-balance">{titulo}</h2>
+    <slot />
+  </div>
+</dialog>
+
+<script>
+  // Un solo script para todas las fichas de la página (Astro lo incluye una vez).
+  for (const boton of document.querySelectorAll<HTMLElement>('[data-abrir]')) {
+    const ficha = document.getElementById(boton.dataset.abrir!) as HTMLDialogElement | null;
+    boton.addEventListener('click', () => ficha?.showModal());
+  }
+  for (const ficha of document.querySelectorAll<HTMLDialogElement>('dialog.ficha')) {
+    ficha.querySelector('[data-cerrar]')?.addEventListener('click', () => ficha.close());
+    ficha.addEventListener('click', (e) => {
+      if (e.target === ficha) ficha.close();
+    });
+  }
+</script>

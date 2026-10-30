@@ -1,0 +1,10 @@
+---
+// Eje estructural que abre cada sección: burbuja con su letra (A, B, C…) y una línea que se dibuja
+// al entrar en pantalla, como los ejes de un plano de arquitectura. Estilos en global.css.
+interface Props {
+  letra: string;
+}
+const { letra } = Astro.props;
+---
+
+<div class="eje" data-ver aria-hidden="true"><span class="burbuja code">{letra}</span><span class="eje-linea"></span></div>

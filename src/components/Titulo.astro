@@ -1,0 +1,13 @@
+---
+// Título de sección con subrayado naranja, que se traza cuando el eje de su sección entra en pantalla.
+interface Props {
+  id: string;
+  /** Aparece con fundido por sí solo; false cuando ya lo envuelve un bloque que aparece. */
+  aparecer?: boolean;
+}
+const { id, aparecer = true } = Astro.props;
+---
+
+<h2 id={id} class:list={['titulo-seccion mt-6 text-[clamp(1.75rem,3.5vw,2.5rem)] font-semibold tracking-tight', aparecer && 'aparecer']}>
+  <slot />
+</h2>

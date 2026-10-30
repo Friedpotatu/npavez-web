@@ -1,0 +1,32 @@
+---
+// Materiales: las herramientas usadas en proyectos reales, como partidas de una obra.
+import Eje from './Eje.astro';
+import Titulo from './Titulo.astro';
+import { stack } from '../site';
+---
+
+<section id="materiales" aria-labelledby="t-materiales" class="mx-auto max-w-6xl px-5 py-20">
+  <Eje letra="E" />
+  <Titulo id="t-materiales">Materiales</Titulo>
+  <p class="aparecer mt-2 max-w-[60ch] text-muted">
+    Las herramientas con las que he construido. No son un límite: el método se mantiene y el material cambia según la obra.
+  </p>
+  <table class="aparecer mt-8 w-full border-collapse text-left">
+    <thead class="code border-b-2 border-ink text-xs text-muted">
+      <tr>
+        <th scope="col" class="py-2 pr-4 font-normal">partida</th>
+        <th scope="col" class="py-2 font-normal">materiales</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        stack.map((g) => (
+          <tr class="border-b border-line align-top">
+            <th scope="row" class="w-48 py-3 pr-4 font-medium">{g.group}</th>
+            <td class="py-3 leading-relaxed text-muted">{g.items.join(', ')}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</section>

@@ -1,0 +1,42 @@
+---
+// Cómo trabajo: pasos encadenados (aquí el orden sí es información).
+import Eje from './Eje.astro';
+import Titulo from './Titulo.astro';
+import { principles } from '../site';
+---
+
+<section id="metodo" aria-labelledby="t-metodo" class="mx-auto max-w-6xl px-5 py-20">
+  <Eje letra="C" />
+  <Titulo id="t-metodo">Cómo trabajo</Titulo>
+  <ol class="aparecer-grupo mt-10 grid gap-x-6 gap-y-10 md:grid-cols-3">
+    {
+      principles.map((p, i) => (
+        <li class="paso relative">
+          <span class="code grid size-9 place-items-center bg-ink text-sm font-bold text-bg" aria-hidden="true">
+            {i + 1}
+          </span>
+          <h3 class="mt-4 text-lg font-semibold tracking-tight">{p.title}</h3>
+          <p class="mt-1.5 leading-relaxed text-pretty text-muted">{p.text}</p>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  /* En escritorio, cada paso se une al siguiente de su fila con una línea. */
+  @media (min-width: 768px) {
+    .paso::after {
+      content: '';
+      position: absolute;
+      top: 17px;
+      left: 3rem;
+      right: -0.5rem;
+      height: 1px;
+      background: var(--color-line);
+    }
+    .paso:nth-child(3n)::after {
+      display: none;
+    }
+  }
+</style>
